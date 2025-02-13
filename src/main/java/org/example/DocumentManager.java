@@ -60,8 +60,11 @@ public class DocumentManager {
      * @return optional document
      */
     public Optional<Document> findById(String id) {
+        Optional<Document> findResult = storage.stream()
+                .filter(document -> document.getId().equals(id))
+                .findFirst();
 
-        return Optional.empty();
+        return findResult;
     }
 
     @Data
