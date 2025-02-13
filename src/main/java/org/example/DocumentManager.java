@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 /**
  * For implement this task focus on clear code, and make this solution as simple readable as possible
- * Don't worry about performance, concurrency, etc
+ * Don't worry about performance, concurrency, etc.
  * You can use in Memory collection for sore data
  * <p>
  * Please, don't change class name, and signature for methods save, search, findById
@@ -55,7 +55,7 @@ public class DocumentManager {
                 .filter(doc -> matches(doc,request))
                 .collect(Collectors.toList());
 
-        return Collections.emptyList();
+        return result;
     }
 
     /**
@@ -74,46 +74,36 @@ public class DocumentManager {
 
     // Check if the document matches the search request.
     private boolean matches(Document document, SearchRequest request) {
+        boolean matches = false;
+
         // Check title prefixes
         if (request.getTitlePrefixes() != null && !request.getTitlePrefixes().isEmpty()) {
-            boolean titleMatch = request.getTitlePrefixes().stream()
+            matches |= request.getTitlePrefixes().stream()
                     .anyMatch(prefix -> document.getTitle() != null && document.getTitle().startsWith(prefix));
-            if (!titleMatch){
-                return false;
-            }
         }
 
         // Check content contains
         if (request.getContainsContents() != null && !request.getContainsContents().isEmpty()) {
-            boolean contentMatch = request.getContainsContents().stream()
+            matches |= request.getContainsContents().stream()
                     .anyMatch(content -> document.getContent() != null && document.getContent().contains(content));
-            if (!contentMatch) {
-                return false;
-            }
         }
 
         // Check author IDs
         if (request.getAuthorIds() != null && !request.getAuthorIds().isEmpty()) {
-            if (document.getAuthor() == null || !request.getAuthorIds().contains(document.getAuthor().getId())) {
-                return false;
-            }
+            matches |= (document.getAuthor() != null && request.getAuthorIds().contains(document.getAuthor().getId()));
         }
 
         // Check created from date
         if (request.getCreatedFrom() != null && document.getCreated() != null) {
-            if (document.getCreated().isBefore(request.getCreatedFrom())) {
-                return false;
-            }
+            matches |= !document.getCreated().isBefore(request.getCreatedFrom());
         }
 
         // Check created to date
         if (request.getCreatedTo() != null && document.getCreated() != null) {
-            if (document.getCreated().isAfter(request.getCreatedTo())) {
-                return false;
-            }
+            matches |= !document.getCreated().isAfter(request.getCreatedTo());
         }
 
-        return true;
+        return matches;
     }
 
 
