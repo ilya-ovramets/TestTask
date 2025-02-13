@@ -4,9 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.Instant;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * For implement this task focus on clear code, and make this solution as simple readable as possible
@@ -19,6 +17,8 @@ import java.util.Optional;
  */
 public class DocumentManager {
 
+    private final List<Document> storage = new ArrayList<>();
+
     /**
      * Implementation of this method should upsert the document to your storage
      * And generate unique id if it does not exist, don't change [created] field
@@ -28,7 +28,18 @@ public class DocumentManager {
      */
     public Document save(Document document) {
 
-        return null;
+        if (document.getId() == null || document.getId().isEmpty()) {
+            document.setId(UUID.randomUUID().toString());
+        }
+        if (document.getCreated() == null) {
+            document.setCreated(Instant.now());
+        }
+
+        Optional<Document> existingDoc = findById(document.getId());
+        existingDoc.ifPresent(storage::remove);
+        storage.add(document);
+
+        return document;
     }
 
     /**
