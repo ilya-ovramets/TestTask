@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * For implement this task focus on clear code, and make this solution as simple readable as possible
@@ -50,6 +51,10 @@ public class DocumentManager {
      */
     public List<Document> search(SearchRequest request) {
 
+        List<Document> result = storage.stream()
+                .filter(doc -> matches(doc,request))
+                .collect(Collectors.toList());
+
         return Collections.emptyList();
     }
 
@@ -66,6 +71,51 @@ public class DocumentManager {
 
         return findResult;
     }
+
+    // Check if the document matches the search request.
+    private boolean matches(Document document, SearchRequest request) {
+        // Check title prefixes
+        if (request.getTitlePrefixes() != null && !request.getTitlePrefixes().isEmpty()) {
+            boolean titleMatch = request.getTitlePrefixes().stream()
+                    .anyMatch(prefix -> document.getTitle() != null && document.getTitle().startsWith(prefix));
+            if (!titleMatch){
+                return false;
+            }
+        }
+
+        // Check content contains
+        if (request.getContainsContents() != null && !request.getContainsContents().isEmpty()) {
+            boolean contentMatch = request.getContainsContents().stream()
+                    .anyMatch(content -> document.getContent() != null && document.getContent().contains(content));
+            if (!contentMatch) {
+                return false;
+            }
+        }
+
+        // Check author IDs
+        if (request.getAuthorIds() != null && !request.getAuthorIds().isEmpty()) {
+            if (document.getAuthor() == null || !request.getAuthorIds().contains(document.getAuthor().getId())) {
+                return false;
+            }
+        }
+
+        // Check created from date
+        if (request.getCreatedFrom() != null && document.getCreated() != null) {
+            if (document.getCreated().isBefore(request.getCreatedFrom())) {
+                return false;
+            }
+        }
+
+        // Check created to date
+        if (request.getCreatedTo() != null && document.getCreated() != null) {
+            if (document.getCreated().isAfter(request.getCreatedTo())) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
 
     @Data
     @Builder
